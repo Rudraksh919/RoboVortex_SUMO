@@ -9,7 +9,10 @@ COMMANDS = {
     "backward": "/backward",
     "left": "/left",
     "right": "/right",
-    "stop": "/stop"
+    "stop": "/stop",
+    "motor_cw": "/motorcw",       # NEW: Motor C Clockwise
+    "motor_ccw": "/motorccw"      # NEW: Motor C AntiClockwise
+
 }
 
 # Initialize pygame and joystick
@@ -62,6 +65,17 @@ while True:
         if last_command != "stop":
             send_command("stop")
             last_command = "stop"
+
+    
+    button_cw = joystick.get_button(0)
+    button_ccw = joystick.get_button(1)
+    
+    if button_cw:
+        send_command("motor_cw")
+        time.sleep(0.2)
+    elif button_ccw:
+        send_command("motor_ccw")
+        time.sleep(0.2)
 
     time.sleep(0.1)  # Prevent spamming requests too fast
      
