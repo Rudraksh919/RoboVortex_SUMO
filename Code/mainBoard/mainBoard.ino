@@ -1,90 +1,137 @@
 #include <WiFi.h>
-#include <WebSocketsServer.h>
 
-const char* ssid = "SUMO_BOT";      // WiFi AP Name
-const char* password = "12345678";  // WiFi Password
+const char* ssid = "Your_SSID";
+const char* password = "Your_PASSWORD";
 
-WebSocketsServer webSocket(81);  // WebSocket Server on Port 81
+WiFiServer server(80);
 
-// Define Motor Pins
-#define MOTOR1_1 5     // Left forward
-#define MOTOR1_2 18    // Left backward
-#define MOTOR2_1 19    // Right forward
-#define MOTOR2_2 21    // Right backward
-#define MOTOR1_PWM 14  // PWM control for left motor
-#define MOTOR2_PWM 15  // PWM control for right motor
+// Define motor pins
+const int motorA_IN1 = 27;
+const int motorA_IN2 = 26;
+const int motorA_ENA = 14;
+
+const int motorB_IN3 = 25;
+const int motorB_IN4 = 33;
+const int motorB_ENB = 32;
 
 void setup() {
   Serial.begin(115200);
 
-  // Set up WiFi Access Point
-  WiFi.softAP(ssid, password);
-  Serial.println("WiFi AP Started");
+  // Set motor pins as outputs
+  pinMode(motorA_IN1, OUTPUT);
+  pinMode(motorA_IN2, OUTPUT);
+  pinMode(motorA_ENA, OUTPUT);
+  
+  pinMode(motorB_IN3, OUTPUT);
+  pinMode(motorB_IN4, OUTPUT);
+  pinMode(motorB_ENB, OUTPUT);
+
+  // Initialize motors off
+  digitalWrite(motorA_ENA, LOW);
+  digitalWrite(motorB_ENB, LOW);
+
+  // Connect to Wi-Fi network
+  WiFi.begin(ssid, password);
+  
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  
+  Serial.println("");
+  Serial.println("WiFi connected.");
+  
+  server.begin();
+  
   Serial.print("IP Address: ");
-  Serial.println(WiFi.softAPIP());
-
-  // Start WebSocket Server
-  webSocket.begin();
-  webSocket.onEvent(webSocketEvent);
-
-  //Set motor pins as output
-  pinMode(MOTOR1_1, OUTPUT);
-  pinMode(MOTOR1_2, OUTPUT);
-  pinMode(MOTOR2_1, OUTPUT);
-  pinMode(MOTOR2_2, OUTPUT);
-  pinMode(MOTOR1_PWM, OUTPUT);
-  pinMode(MOTOR2_PWM, OUTPUT);
-
-  //Initialize motors to stop state
-  stopMotors();
+  Serial.println(WiFi.localIP());
 }
 
 void loop() {
-  webSocket.loop();  // Handle WebSocket Events
-  analogWrite(MOTOR1_PWM, 4096);
-  analogWrite(MOTOR2_PWM, 4096);
-}
+  
+  WiFiClient client = server.available();
+  
+  if (client) {
+    String request = client.readStringUntil('\r');
+    client.flush();
 
-// Function to control motors
-void moveBot(String direction) {
-  if (direction == "forward") {
-    digitalWrite(MOTOR1_1, HIGH);
-    digitalWrite(MOTOR2_1, HIGH);
-    digitalWrite(MOTOR1_2, LOW);
-    digitalWrite(MOTOR2_2, LOW);
-  } else if (direction == "backward") {
-    digitalWrite(MOTOR1_1, LOW);
-    digitalWrite(MOTOR2_1, LOW);
-    digitalWrite(MOTOR1_2, HIGH);
-    digitalWrite(MOTOR2_2, HIGH);
-  } else if (direction == "left") {
-    digitalWrite(MOTOR1_1, LOW);
-    digitalWrite(MOTOR2_1, HIGH);
-    digitalWrite(MOTOR1_2, HIGH);
-    digitalWrite(MOTOR2_2, LOW);
-  } else if (direction == "right") {
-    digitalWrite(MOTOR1_1, HIGH);
-    digitalWrite(MOTOR2_1, LOW);
-    digitalWrite(MOTOR1_2, LOW);
-    digitalWrite(MOTOR2_2, HIGH);
-  } else if (direction == "stop") {
-    stopMotors();
+    // Simple HTTP request parsing
+    if (request.indexOf("/forward") != -1) {
+      moveForward();
+    } else if (request.indexOf("/backward") != -1) {
+      moveBackward();
+    } else if (request.indexOf("/left") != -1) {
+      turnLeft();
+    } else if (request.indexOf("/right") != -1) {
+      turnRight();
+    } else if (request.indexOf("/stop") != -1) {
+      stopMotors();
+    }
+
+    // Send HTTP response
+    client.println("HTTP/1.1 200 OK");
+    client.println("Content-type:text/html");
+    client.println();
+    client.println("<html><body>");
+    client.println("<h1>ESP32 Motor Control</h1>");
+    client.println("<p><a href=\"/forward\">Forward</a></p>");
+    client.println("<p><a href=\"/backward\">Backward</a></p>");
+    client.println("<p><a href=\"/left\">Left</a></p>");
+    client.println("<p><a href=\"/right\">Right</a></p>");
+    client.println("<p><a href=\"/stop\">Stop</a></p>");
+    client.println("</body></html>");
+
+    delay(10);
+    client.stop();
   }
 }
 
-// Stop all motors
+// Motor control functions
+void moveForward() {
+  digitalWrite(motorA_IN1, HIGH);
+  digitalWrite(motorA_IN2, LOW);
+  
+  digitalWrite(motorB_IN3, HIGH);
+  digitalWrite(motorB_IN4, LOW);
+
+  analogWrite(motorA_ENA, 200); // Speed between (0-255)
+  analogWrite(motorB_ENB, 200);
+}
+
+void moveBackward() {
+  digitalWrite(motorA_IN1, LOW);
+  digitalWrite(motorA_IN2, HIGH);
+  
+  digitalWrite(motorB_IN3, LOW);
+  digitalWrite(motorB_IN4, HIGH);
+
+  analogWrite(motorA_ENA, 200);
+  analogWrite(motorB_ENB, 200);
+}
+
+void turnLeft() {
+  digitalWrite(motorA_IN1, LOW);
+  digitalWrite(motorA_IN2, HIGH);
+  
+  digitalWrite(motorB_IN3, HIGH);
+  digitalWrite(motorB_IN4, LOW);
+
+  analogWrite(motorA_ENA,200);
+  analogWrite(motorB_ENB,200);
+}
+
+void turnRight() {
+ digitalWrite(motorA_IN1,HIGH);
+ digitalWrite(motorA_IN2,LOW);
+
+ digitalWrite(motorB_IN3,LOW);
+ digitalWrite(motorB_IN4,HIGH);
+
+ analogWrite(motorA_ENA,200); 
+ analogWrite(motorB_ENB,200); 
+}
+
 void stopMotors() {
-  digitalWrite(MOTOR1_1, LOW);
-  digitalWrite(MOTOR2_1, LOW);
-  digitalWrite(MOTOR1_2, LOW);
-  digitalWrite(MOTOR2_2, LOW);
-}
-
-// Handle WebSocket Messages
-void webSocketEvent(uint8_t num, WStype_t type, uint8_t* payload, size_t length) {
-  if (type == WStype_TEXT) {
-    String command = String((char*)payload).substring(0, length);  // Ensuring correct parsing
-    Serial.println("Received: " + command);
-    moveBot(command);
-  }
+ analogWrite(motorA_ENA,0); 
+ analogWrite(motorB_ENB,0); 
 }

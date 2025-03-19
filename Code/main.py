@@ -1,45 +1,67 @@
-import websocket
 import pygame
+import requests
 import time
 
-# ESP32 WebSocket Server IP
-ESP_IP = "192.168.4.1"
-ESP_PORT = 81
-WS_URL = f"ws://{ESP_IP}:{ESP_PORT}/"
+# ESP32 details
+ESP32_IP = "192.168.4.1"  # Make sure this matches the ESP32 AP IP
+COMMANDS = {
+    "forward": "/forward",
+    "backward": "/backward",
+    "left": "/left",
+    "right": "/right",
+    "stop": "/stop"
+}
 
-# Connect to ESP32 WebSocket Server
-ws = websocket.WebSocket()
-ws.connect(WS_URL)
-
-# Initialize Pygame for Controller Input
+# Initialize pygame and joystick
 pygame.init()
+pygame.joystick.init()
+
+# Detect joystick
+if pygame.joystick.get_count() == 0:
+    print("No joystick detected!")
+    exit()
 joystick = pygame.joystick.Joystick(0)
 joystick.init()
+print(f"Detected Joystick: {joystick.get_name()}")
 
-DEAD_ZONE = 0.2  # Ignore small movements
-last_command = ""  # Track last sent command
+def send_command(command):
+    url = f"http://{ESP32_IP}{COMMANDS[command]}"
+    try:
+        requests.get(url, timeout=1)
+        print(f"Sent command: {command}")
+    except requests.exceptions.RequestException:
+        print(f"Failed to send {command}")
 
+# Main loop
+last_command = ""
 while True:
-    pygame.event.pump()
+    pygame.event.pump()  # Process internal pygame events
     
-    axis_y = joystick.get_axis(1)  # Forward/Backward
-    axis_x = joystick.get_axis(0)  # Left/Right
-
-    # Determine movement command
-    if axis_y < -DEAD_ZONE:
-        command = "forward"
-    elif axis_y > DEAD_ZONE:
-        command = "backward"
-    elif axis_x < -DEAD_ZONE:
-        command = "left"
-    elif axis_x > DEAD_ZONE:
-        command = "right"
+    # Example: using left joystick (axis 1 for vertical, axis 0 for horizontal)
+    axis_0 = joystick.get_axis(0)
+    axis_1 = joystick.get_axis(1)
+    
+    # Determine direction based on axis values
+    if axis_1 < -0.5:
+        if last_command != "forward":
+            send_command("forward")
+            last_command = "forward"
+    elif axis_1 > 0.5:
+        if last_command != "backward":
+            send_command("backward")
+            last_command = "backward"
+    elif axis_0 < -0.5:
+        if last_command != "left":
+            send_command("left")
+            last_command = "left"
+    elif axis_0 > 0.5:
+        if last_command != "right":
+            send_command("right")
+            last_command = "right"
     else:
-        command = "stop"
+        if last_command != "stop":
+            send_command("stop")
+            last_command = "stop"
 
-    # Send command only if it's different from the last one
-    if command != last_command:
-        ws.send(command)
-        last_command = command  # Update last command
-    
-    time.sleep(0.05)  # Small delay to prevent spamming commands
+    time.sleep(0.1)  # Prevent spamming requests too fast
+     
