@@ -70,7 +70,7 @@ while True:
     button_cw = joystick.get_button(0)
     button_ccw = joystick.get_button(1)
     
-   if button_cw:
+    if button_cw:
         if last_command != "motor_cw":
             
             send_command("motor_cw")
