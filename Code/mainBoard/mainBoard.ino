@@ -14,9 +14,9 @@ const int motorB_IN3 = 19;
 const int motorB_IN4 = 21;
 const int motorB_ENB = 33;
 
-const int motorC_IN5 = 22;
-const int motorC_IN6 = 23;
-const int motorC_ENC = 35;
+const int motorC_IN5 = 25;
+const int motorC_IN6 = 26;
+const int motorC_ENC = 27;
 
 void setup() {
   Serial.begin(115200);
