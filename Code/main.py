@@ -71,15 +71,11 @@ while True:
     button_ccw = joystick.get_button(1)
     
     if button_cw:
-        if last_command != "motor_cw":
-            
-            send_command("motor_cw")
-            last_command = "motor_cw"
-            
+        send_command("motor_cw")
+        time.sleep(0.2)
     elif button_ccw:
-        if last_command != "motor_ccw":
-            send_command("motor_ccw")
-            last_command = "motor_ccw"
+        send_command("motor_ccw")
+        time.sleep(0.2)
 
     time.sleep(0.1)  # Prevent spamming requests too fast
      
