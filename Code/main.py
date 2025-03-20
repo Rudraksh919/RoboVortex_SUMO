@@ -11,7 +11,7 @@ COMMANDS = {
     "right": "/right",
     "stop": "/stop",
     "motor_cw": "/motorcw",       # NEW: Motor C Clockwise
-    "motor_ccw": "/motorccw"      # NEW: Motor C AntiClockwise
+    "motor_ccw": "/motorccw"      # NEW: Motor C    AntiClockwise
 
 }
 

@@ -1,137 +1,119 @@
 #include <WiFi.h>
 
-const char* ssid = "Your_SSID";
-const char* password = "Your_PASSWORD";
+const char* ssid = "SUMO-ROBO";
+const char* password = "61991600";
 
 WiFiServer server(80);
 
-// Define motor pins
-const int motorA_IN1 = 27;
-const int motorA_IN2 = 26;
-const int motorA_ENA = 14;
+// Motor pins
+const int motorA_IN1 = 5;
+const int motorA_IN2 = 18;
+const int motorA_ENA = 32;
 
-const int motorB_IN3 = 25;
-const int motorB_IN4 = 33;
-const int motorB_ENB = 32;
+const int motorB_IN3 = 19;
+const int motorB_IN4 = 21;
+const int motorB_ENB = 33;
+
+const int motorC_IN5 = 22;
+const int motorC_IN6 = 23;
+const int motorC_ENC = 35;
 
 void setup() {
   Serial.begin(115200);
 
-  // Set motor pins as outputs
+  // Configure motor pins
   pinMode(motorA_IN1, OUTPUT);
   pinMode(motorA_IN2, OUTPUT);
   pinMode(motorA_ENA, OUTPUT);
-  
+
   pinMode(motorB_IN3, OUTPUT);
   pinMode(motorB_IN4, OUTPUT);
   pinMode(motorB_ENB, OUTPUT);
 
-  // Initialize motors off
-  digitalWrite(motorA_ENA, LOW);
-  digitalWrite(motorB_ENB, LOW);
+  pinMode(motorC_IN5, OUTPUT);
+  pinMode(motorC_IN6 ,OUTPUT);
+  pinMode(motorC_ENC, OUTPUT);
 
-  // Connect to Wi-Fi network
-  WiFi.begin(ssid, password);
+  stopMotors();
+  analogWrite(motorA_ENA, 255); // Motor A at full speed
+  analogWrite(motorB_ENB, 255); // Motor B at full speed
+
+  // Set ESP32 as Access Point
+  WiFi.softAP(ssid, password);
   
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-  }
-  
-  Serial.println("");
-  Serial.println("WiFi connected.");
-  
+  IPAddress IP = WiFi.softAPIP();
+  Serial.print("ESP32 AP IP address: ");
+  Serial.println(IP);
+
   server.begin();
-  
-  Serial.print("IP Address: ");
-  Serial.println(WiFi.localIP());
 }
 
 void loop() {
   
-  WiFiClient client = server.available();
-  
-  if (client) {
-    String request = client.readStringUntil('\r');
-    client.flush();
+ WiFiClient client = server.available();
+ if (client) {
+   String request = client.readStringUntil('\r');
+   client.flush();
 
-    // Simple HTTP request parsing
-    if (request.indexOf("/forward") != -1) {
-      moveForward();
-    } else if (request.indexOf("/backward") != -1) {
-      moveBackward();
-    } else if (request.indexOf("/left") != -1) {
-      turnLeft();
-    } else if (request.indexOf("/right") != -1) {
-      turnRight();
-    } else if (request.indexOf("/stop") != -1) {
-      stopMotors();
-    }
+   if (request.indexOf("/forward") != -1) moveForward();
+   else if (request.indexOf("/backward") != -1) moveBackward();
+   else if (request.indexOf("/left") != -1) turnLeft();
+   else if (request.indexOf("/right") != -1) turnRight();
+   else if (request.indexOf("/stop") != -1) stopMotors();
+   else if (request.indexOf("/motorcw") != -1) motorClockwise();
+   else if (request.indexOf("/motorccw") != -1) motorAntiClockwise();
 
-    // Send HTTP response
-    client.println("HTTP/1.1 200 OK");
-    client.println("Content-type:text/html");
-    client.println();
-    client.println("<html><body>");
-    client.println("<h1>ESP32 Motor Control</h1>");
-    client.println("<p><a href=\"/forward\">Forward</a></p>");
-    client.println("<p><a href=\"/backward\">Backward</a></p>");
-    client.println("<p><a href=\"/left\">Left</a></p>");
-    client.println("<p><a href=\"/right\">Right</a></p>");
-    client.println("<p><a href=\"/stop\">Stop</a></p>");
-    client.println("</body></html>");
+   // HTTP response with control buttons
+   client.println("HTTP/1.1 200 OK");
+   client.println("Content-type:text/html");
+   client.println();
+   client.println("<html><body><h2>ESP32 Motor Control</h2>");
+   client.println("<a href=\"/forward\">Forward</a><br>");
+   client.println("<a href=\"/backward\">Backward</a><br>");
+   client.println("<a href=\"/left\">Left</a><br>");
+   client.println("<a href=\"/right\">Right</a><br>");
+   client.println("<a href=\"/stop\">Stop</a><br>");
+   client.println("<a href=\"/motorcw_c\">Motor C CW</a><br>");
+   client.println("<a href=\"/motorccw_c\">Motor C CCW</a><br>");
+   client.println("</body></html>");
 
-    delay(10);
-    client.stop();
-  }
+   delay(10);
+   client.stop();
+ }
 }
 
 // Motor control functions
 void moveForward() {
-  digitalWrite(motorA_IN1, HIGH);
-  digitalWrite(motorA_IN2, LOW);
-  
-  digitalWrite(motorB_IN3, HIGH);
-  digitalWrite(motorB_IN4, LOW);
-
-  analogWrite(motorA_ENA, 200); // Speed between (0-255)
-  analogWrite(motorB_ENB, 200);
+ digitalWrite(motorA_IN1,HIGH); digitalWrite(motorA_IN2,LOW);
+ digitalWrite(motorB_IN3,HIGH); digitalWrite(motorB_IN4,LOW);
 }
 
 void moveBackward() {
-  digitalWrite(motorA_IN1, LOW);
-  digitalWrite(motorA_IN2, HIGH);
-  
-  digitalWrite(motorB_IN3, LOW);
-  digitalWrite(motorB_IN4, HIGH);
-
-  analogWrite(motorA_ENA, 200);
-  analogWrite(motorB_ENB, 200);
+ digitalWrite(motorA_IN1,LOW); digitalWrite(motorA_IN2,HIGH);
+ digitalWrite(motorB_IN3,LOW); digitalWrite(motorB_IN4,HIGH);
 }
 
 void turnLeft() {
-  digitalWrite(motorA_IN1, LOW);
-  digitalWrite(motorA_IN2, HIGH);
-  
-  digitalWrite(motorB_IN3, HIGH);
-  digitalWrite(motorB_IN4, LOW);
-
-  analogWrite(motorA_ENA,200);
-  analogWrite(motorB_ENB,200);
+ digitalWrite(motorA_IN1,LOW); digitalWrite(motorA_IN2,HIGH);
+ digitalWrite(motorB_IN3,HIGH); digitalWrite(motorB_IN4,LOW);
 }
 
 void turnRight() {
- digitalWrite(motorA_IN1,HIGH);
- digitalWrite(motorA_IN2,LOW);
-
- digitalWrite(motorB_IN3,LOW);
- digitalWrite(motorB_IN4,HIGH);
-
- analogWrite(motorA_ENA,200); 
- analogWrite(motorB_ENB,200); 
+ digitalWrite(motorA_IN1,HIGH); digitalWrite(motorA_IN2,LOW);
+ digitalWrite(motorB_IN3,LOW); digitalWrite(motorB_IN4,HIGH);
 }
 
 void stopMotors() {
- analogWrite(motorA_ENA,0); 
- analogWrite(motorB_ENB,0); 
+  digitalWrite(motorA_IN1,LOW); digitalWrite(motorA_IN2,LOW);
+ digitalWrite(motorB_IN3,LOW); digitalWrite(motorB_IN4,LOW);
+}
+
+void motorClockwise() {
+  digitalWrite(motorC_IN5, HIGH); digitalWrite(motorC_IN6, LOW);
+  analogWrite(motorC_ENC, 200);
+}
+
+void motorAntiClockwise() {
+  digitalWrite(motorC_IN5, LOW); digitalWrite(motorC_IN6, HIGH);
+  analogWrite(motorC_ENC, 200);
 }
