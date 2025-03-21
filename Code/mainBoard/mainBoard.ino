@@ -18,6 +18,11 @@ const int motorC_IN5 = 25;
 const int motorC_IN6 = 26;
 const int motorC_ENC = 27;
 
+int normalSpeed = 200;  // Normal speed for A & B motors
+int boostedSpeed = 255; // Boosted speed (max)
+
+int currentSpeed = 200; // Variable to hold current speed
+
 void setup()
 {
   Serial.begin(115200);
@@ -36,8 +41,8 @@ void setup()
   pinMode(motorC_ENC, OUTPUT);
 
   stopMotors();
-  analogWrite(motorA_ENA, 255); // Motor A full speed
-  analogWrite(motorB_ENB, 255); // Motor B full speed
+  analogWrite(motorA_ENA, normalSpeed); // Normal initial speed
+  analogWrite(motorB_ENB, normalSpeed);
   analogWrite(motorC_ENC, 200); // Motor C speed
 
   // Set ESP32 as Access Point
@@ -73,6 +78,10 @@ void loop()
       motorAntiClockwise();
     else if (request.indexOf("/motorstop") != -1)
       stopMotorC();
+    else if (request.indexOf("/speedboost") != -1)
+      setMotorSpeed(boostedSpeed);
+    else if (request.indexOf("/speednormal") != -1)
+      setMotorSpeed(normalSpeed);
 
     // HTTP response (optional)
     client.println("HTTP/1.1 200 OK");
@@ -151,4 +160,13 @@ void stopMotorC()
 {
   digitalWrite(motorC_IN5, LOW);
   digitalWrite(motorC_IN6, LOW);
+}
+
+void setMotorSpeed(int speed)
+{
+  analogWrite(motorA_ENA, speed);
+  analogWrite(motorB_ENB, speed);
+  currentSpeed = speed;
+  Serial.print("Motor A & B speed set to: ");
+  Serial.println(speed);
 }

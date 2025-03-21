@@ -12,7 +12,9 @@ COMMANDS = {
     "stop": "/stop",
     "motor_cw": "/motorcw",
     "motor_ccw": "/motorccw",
-    "motor_stop": "/motorstop"
+    "motor_stop": "/motorstop",
+    "speed_boost": "/speedboost",
+    "speed_normal": "/speednormal",
 }
 
 # Initialize pygame and joystick
@@ -27,6 +29,7 @@ joystick = pygame.joystick.Joystick(0)
 joystick.init()
 print(f"Detected Joystick: {joystick.get_name()}")
 
+
 def send_command(command):
     url = f"http://{ESP32_IP}{COMMANDS[command]}"
     try:
@@ -35,16 +38,17 @@ def send_command(command):
     except requests.exceptions.RequestException:
         print(f"Failed to send {command}")
 
+
 last_drive_command = ""
 last_motorC_command = ""
 
 while True:
     pygame.event.pump()  # Process events
-    
+
     # Movement control (axis based)
     axis_0 = joystick.get_axis(0)
     axis_1 = joystick.get_axis(1)
-    
+
     if axis_1 < -0.5:
         if last_drive_command != "forward":
             send_command("forward")
@@ -65,6 +69,17 @@ while True:
         if last_drive_command != "stop":
             send_command("stop")
             last_drive_command = "stop"
+
+    speed_boost_button = joystick.get_button(2)  # Button index 2
+
+    if speed_boost_button:
+        if last_motorC_command != "speed_boost":
+            send_command("speed_boost")
+            last_motorC_command = "speed_boost"
+    else:
+        if last_motorC_command != "speed_normal":
+            send_command("speed_normal")
+            last_motorC_command = "speed_normal"
 
     # Motor C control (button based)
     button_cw = joystick.get_button(0)
