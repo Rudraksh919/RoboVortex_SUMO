@@ -6,13 +6,13 @@ const char *password = "61991600";
 WiFiServer server(80);
 
 // Motor pins
-const int motorA_IN1 = 5;
-const int motorA_IN2 = 18;
-const int motorA_ENA = 32;
+const int motorA_IN1 = 19;
+const int motorA_IN2 = 21;
+const int motorA_ENA = 33;
 
-const int motorB_IN3 = 19;
-const int motorB_IN4 = 21;
-const int motorB_ENB = 33;
+const int motorB_IN3 = 5;
+const int motorB_IN4 = 18;
+const int motorB_ENB = 32;
 
 const int motorC_IN5 = 25;
 const int motorC_IN6 = 26;
@@ -36,13 +36,12 @@ void setup()
   pinMode(motorC_ENC, OUTPUT);
 
   stopMotors();
-  analogWrite(motorA_ENA, 255); // Motor A at full speed
-  analogWrite(motorB_ENB, 255); // Motor B at full speed
-  analogWrite(motorC_ENC, 200);
+  analogWrite(motorA_ENA, 255); // Motor A full speed
+  analogWrite(motorB_ENB, 255); // Motor B full speed
+  analogWrite(motorC_ENC, 200); // Motor C speed
 
   // Set ESP32 as Access Point
   WiFi.softAP(ssid, password);
-
   IPAddress IP = WiFi.softAPIP();
   Serial.print("ESP32 AP IP address: ");
   Serial.println(IP);
@@ -52,7 +51,6 @@ void setup()
 
 void loop()
 {
-
   WiFiClient client = server.available();
   if (client)
   {
@@ -73,8 +71,10 @@ void loop()
       motorClockwise();
     else if (request.indexOf("/motorccw") != -1)
       motorAntiClockwise();
+    else if (request.indexOf("/motorstop") != -1)
+      stopMotorC();
 
-    // HTTP response with control buttons
+    // HTTP response (optional)
     client.println("HTTP/1.1 200 OK");
     client.println("Content-type:text/html");
     client.println();
@@ -84,8 +84,9 @@ void loop()
     client.println("<a href=\"/left\">Left</a><br>");
     client.println("<a href=\"/right\">Right</a><br>");
     client.println("<a href=\"/stop\">Stop</a><br>");
-    client.println("<a href=\"/motorcw_c\">Motor C CW</a><br>");
-    client.println("<a href=\"/motorccw_c\">Motor C CCW</a><br>");
+    client.println("<a href=\"/motorcw\">Motor C CW</a><br>");
+    client.println("<a href=\"/motorccw\">Motor C CCW</a><br>");
+    client.println("<a href=\"/motorstop\">Motor C Stop</a><br>");
     client.println("</body></html>");
 
     delay(10);
@@ -144,4 +145,10 @@ void motorAntiClockwise()
 {
   digitalWrite(motorC_IN5, LOW);
   digitalWrite(motorC_IN6, HIGH);
+}
+
+void stopMotorC()
+{
+  digitalWrite(motorC_IN5, LOW);
+  digitalWrite(motorC_IN6, LOW);
 }
