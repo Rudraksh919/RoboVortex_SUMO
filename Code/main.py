@@ -70,7 +70,7 @@ while True:
             send_command("stop")
             last_drive_command = "stop"
 
-    speed_boost_button = joystick.get_button(2)  # Button index 2
+    speed_boost_button = joystick.get_button(0)  # Button index 2
 
     if speed_boost_button:
         if last_motorC_command != "speed_boost":
@@ -82,8 +82,8 @@ while True:
             last_motorC_command = "speed_normal"
 
     # Motor C control (button based)
-    button_cw = joystick.get_button(0)
-    button_ccw = joystick.get_button(1)
+    button_cw = joystick.get_button(3)
+    button_ccw = joystick.get_button(2)
 
     if button_cw:
         if last_motorC_command != "motor_cw":
