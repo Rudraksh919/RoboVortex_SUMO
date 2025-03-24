@@ -18,10 +18,10 @@ const int motorC_IN5 = 25;
 const int motorC_IN6 = 26;
 const int motorC_ENC = 27;
 
-int normalSpeed = 100;  // Normal speed for A & B motors
+int normalSpeed = 150;  // Normal speed for A & B motors
 int boostedSpeed = 255; // Boosted speed (max)
 
-int currentSpeed = 100; // Variable to hold current speed
+int currentSpeed = 150; // Variable to hold current speed
 
 void setup()
 {
@@ -43,7 +43,7 @@ void setup()
   stopMotors();
   analogWrite(motorA_ENA, normalSpeed); // Normal initial speed
   analogWrite(motorB_ENB, normalSpeed);
-  analogWrite(motorC_ENC, 255); // Motor C speed
+  analogWrite(motorC_ENC, 150); // Motor C speed
 
   // Set ESP32 as Access Point
   WiFi.softAP(ssid, password);
