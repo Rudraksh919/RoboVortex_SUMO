@@ -4,6 +4,13 @@
 const char *ssid = "Hello";
 const char *password = "61991600";
 
+// Define Static IP settings
+IPAddress local_IP(192, 168, 1, 184); // Desired static IP
+IPAddress gateway(192, 168, 1, 1);    // Typically the router/gateway IP
+IPAddress subnet(255, 255, 255, 0);   // Subnet mask
+IPAddress primaryDNS(8, 8, 8, 8);     // Optional
+IPAddress secondaryDNS(8, 8, 4, 4);   // Optional
+
 WiFiServer server(80);
 
 // Motor pins
@@ -21,7 +28,6 @@ const int motorC_ENC = 27;
 
 int normalSpeed = 150;  // Normal speed for A & B motors
 int boostedSpeed = 255; // Boosted speed (max)
-
 int currentSpeed = 150; // Variable to hold current speed
 
 void setup()
@@ -46,7 +52,13 @@ void setup()
   analogWrite(motorB_ENB, normalSpeed);
   analogWrite(motorC_ENC, 150); // Motor C speed
 
-  // Connect to existing WiFi hotspot
+  // Set Static IP
+  if (!WiFi.config(local_IP, gateway, subnet, primaryDNS, secondaryDNS))
+  {
+    Serial.println("STA Failed to configure");
+  }
+
+  // Connect to WiFi
   WiFi.begin(ssid, password);
   Serial.println("Connecting to WiFi...");
 
@@ -122,7 +134,6 @@ void moveForward()
   digitalWrite(motorB_IN3, HIGH);
   digitalWrite(motorB_IN4, LOW);
 }
-
 void moveBackward()
 {
   digitalWrite(motorA_IN1, LOW);
@@ -130,7 +141,6 @@ void moveBackward()
   digitalWrite(motorB_IN3, LOW);
   digitalWrite(motorB_IN4, HIGH);
 }
-
 void turnLeft()
 {
   digitalWrite(motorA_IN1, LOW);
@@ -138,7 +148,6 @@ void turnLeft()
   digitalWrite(motorB_IN3, HIGH);
   digitalWrite(motorB_IN4, LOW);
 }
-
 void turnRight()
 {
   digitalWrite(motorA_IN1, HIGH);
@@ -146,7 +155,6 @@ void turnRight()
   digitalWrite(motorB_IN3, LOW);
   digitalWrite(motorB_IN4, HIGH);
 }
-
 void stopMotors()
 {
   digitalWrite(motorA_IN1, LOW);
@@ -154,25 +162,21 @@ void stopMotors()
   digitalWrite(motorB_IN3, LOW);
   digitalWrite(motorB_IN4, LOW);
 }
-
 void motorClockwise()
 {
   digitalWrite(motorC_IN5, HIGH);
   digitalWrite(motorC_IN6, LOW);
 }
-
 void motorAntiClockwise()
 {
   digitalWrite(motorC_IN5, LOW);
   digitalWrite(motorC_IN6, HIGH);
 }
-
 void stopMotorC()
 {
   digitalWrite(motorC_IN5, LOW);
   digitalWrite(motorC_IN6, LOW);
 }
-
 void setMotorSpeed(int speed)
 {
   analogWrite(motorA_ENA, speed);
