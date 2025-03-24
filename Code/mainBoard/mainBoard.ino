@@ -1,6 +1,7 @@
 #include <WiFi.h>
 
-const char *ssid = "SUMO-ROBO";
+// Replace with your hotspot's credentials
+const char *ssid = "Hello";
 const char *password = "61991600";
 
 WiFiServer server(80);
@@ -41,15 +42,25 @@ void setup()
   pinMode(motorC_ENC, OUTPUT);
 
   stopMotors();
-  analogWrite(motorA_ENA, normalSpeed); // Normal initial speed
+  analogWrite(motorA_ENA, normalSpeed);
   analogWrite(motorB_ENB, normalSpeed);
   analogWrite(motorC_ENC, 150); // Motor C speed
 
-  // Set ESP32 as Access Point
-  WiFi.softAP(ssid, password);
-  IPAddress IP = WiFi.softAPIP();
-  Serial.print("ESP32 AP IP address: ");
-  Serial.println(IP);
+  // Connect to existing WiFi hotspot
+  WiFi.begin(ssid, password);
+  Serial.println("Connecting to WiFi...");
+
+  // Wait for connection
+  while (WiFi.status() != WL_CONNECTED)
+  {
+    delay(500);
+    Serial.print(".");
+  }
+
+  Serial.println("");
+  Serial.println("WiFi connected.");
+  Serial.print("ESP32 IP address: ");
+  Serial.println(WiFi.localIP());
 
   server.begin();
 }
@@ -83,7 +94,7 @@ void loop()
     else if (request.indexOf("/speednormal") != -1)
       setMotorSpeed(normalSpeed);
 
-    // HTTP response (optional)
+    // Simple HTTP response
     client.println("HTTP/1.1 200 OK");
     client.println("Content-type:text/html");
     client.println();
@@ -103,7 +114,7 @@ void loop()
   }
 }
 
-// Motor control functions
+// Motor control functions (same as before)
 void moveForward()
 {
   digitalWrite(motorA_IN1, HIGH);
