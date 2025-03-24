@@ -23,6 +23,7 @@ int normalSpeed = 150;  // Normal speed for A & B motors
 int boostedSpeed = 255; // Boosted speed (max)
 
 int currentSpeed = 150; // Variable to hold current speed
+int currentSpeed_c = 150;
 
 void setup()
 {
@@ -44,7 +45,7 @@ void setup()
   stopMotors();
   analogWrite(motorA_ENA, normalSpeed);
   analogWrite(motorB_ENB, normalSpeed);
-  analogWrite(motorC_ENC, 150); // Motor C speed
+  analogWrite(motorC_ENC, normalSpeed); // Motor C speed
 
   // Connect to existing WiFi hotspot
   WiFi.begin(ssid, password);
@@ -93,6 +94,10 @@ void loop()
       setMotorSpeed(boostedSpeed);
     else if (request.indexOf("/speednormal") != -1)
       setMotorSpeed(normalSpeed);
+    else if (request.indexOf("/motor_c_boost") != -1)
+      setMotorSpeed_c(boostedSpeed);
+    else if (request.indexOf("/motor_c_boost") != -1)
+      setMotorSpeed_c(normalSpeed);
 
     // Simple HTTP response
     client.println("HTTP/1.1 200 OK");
@@ -179,5 +184,13 @@ void setMotorSpeed(int speed)
   analogWrite(motorB_ENB, speed);
   currentSpeed = speed;
   Serial.print("Motor A & B speed set to: ");
+  Serial.println(speed);
+}
+
+void setMotorSpeed_c(int speed)
+{
+  analogWrite(motorC_ENC, speed);
+  currentSpeed_c = speed;
+  Serial.print("Motor C speed set to: ");
   Serial.println(speed);
 }

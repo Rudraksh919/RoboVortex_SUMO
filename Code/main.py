@@ -15,6 +15,8 @@ COMMANDS = {
     "motor_stop": "/motorstop",
     "speed_boost": "/speedboost",
     "speed_normal": "/speednormal",
+    "motor_c_boost": "/motor_c_boost",
+    "motor_c_normal": "/motor_c_normal",
 }
 
 # Initialize pygame and joystick
@@ -98,7 +100,18 @@ while True:
             send_command("motor_stop")
             last_motorC_command = "motor_stop"
 
+    button_c_boost = joystick.get_button(1)
+
+    if speed_boost_button:
+        if last_motorC_command != "motor_c_boost":
+            send_command("motor_c_boost")
+            last_motorC_command = "motor_c_boost"
+    else:
+        if last_motorC_command != "motor_c_normal":
+            send_command("motor_c_normal")
+            last_motorC_command = "motor_c_normal"
+
     time.sleep(0.05)  # Control request frequency
 
 
-#hello becnchod
+# hello becnchod
