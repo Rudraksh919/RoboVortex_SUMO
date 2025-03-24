@@ -1,7 +1,7 @@
 #include <WiFi.h>
 
 // Replace with your hotspot's credentials
-const char *ssid = "Hello";
+const char *ssid = "ADITHYAV";
 const char *password = "61991600";
 
 WiFiServer server(80);
