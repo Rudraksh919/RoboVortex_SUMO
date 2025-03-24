@@ -3,7 +3,7 @@ import requests
 import time
 
 # ESP32 details
-ESP32_IP = "192.168.1.84"  # Change if needed
+ESP32_IP = "192.168.137.110"  # Change if needed
 COMMANDS = {
     "forward": "/forward",
     "backward": "/backward",
