@@ -1,8 +1,8 @@
 #include <WiFi.h>
 
-// Replace with your hotspot's credentials
-const char *ssid = "ADITHYAV";
-const char *password = "61991600";
+// Set the credentials for your ESP32 access point
+const char *ssid = "RoboVortex-Bot-"; // Network name for ESP32 AP
+const char *password = "61991600"; // Password for the AP (optional, but recommended)
 
 WiFiServer server(80);
 
@@ -22,8 +22,9 @@ const int motorC_ENC = 27;
 int normalSpeed = 150;  // Normal speed for A & B motors
 int boostedSpeed = 255; // Boosted speed (max)
 
+int normalSpeed_c = 100;
 int currentSpeed = 150; // Variable to hold current speed
-int currentSpeed_c = 150;
+int currentSpeed_c = 100;
 
 void setup()
 {
@@ -45,25 +46,15 @@ void setup()
   stopMotors();
   analogWrite(motorA_ENA, normalSpeed);
   analogWrite(motorB_ENB, normalSpeed);
-  analogWrite(motorC_ENC, normalSpeed); // Motor C speed
+  analogWrite(motorC_ENC, normalSpeed_c); // Motor C speed
 
-  // Connect to existing WiFi hotspot
-  WiFi.begin(ssid, password);
-  Serial.println("Connecting to WiFi...");
+  // Set up the ESP32 as an Access Point
+  WiFi.softAP(ssid, password);  // Start the access point with the given SSID and password
+  Serial.println("Access Point Started");
+  Serial.print("IP Address: ");
+  Serial.println(WiFi.softAPIP()); // Display the IP address of the ESP32 in AP mode
 
-  // Wait for connection
-  while (WiFi.status() != WL_CONNECTED)
-  {
-    delay(500);
-    Serial.print(".");
-  }
-
-  Serial.println("");
-  Serial.println("WiFi connected.");
-  Serial.print("ESP32 IP address: ");
-  Serial.println(WiFi.localIP());
-
-  server.begin();
+  server.begin(); // Start the server to listen for incoming connections
 }
 
 void loop()
@@ -96,8 +87,8 @@ void loop()
       setMotorSpeed(normalSpeed);
     else if (request.indexOf("/motor_c_boost") != -1)
       setMotorSpeed_c(boostedSpeed);
-    else if (request.indexOf("/motor_c_boost") != -1)
-      setMotorSpeed_c(normalSpeed);
+    else if (request.indexOf("/motor_c_normal") != -1)
+      setMotorSpeed_c(normalSpeed_c);
 
     // Simple HTTP response
     client.println("HTTP/1.1 200 OK");

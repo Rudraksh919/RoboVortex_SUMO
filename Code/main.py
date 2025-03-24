@@ -3,7 +3,7 @@ import requests
 import time
 
 # ESP32 details
-ESP32_IP = "192.168.137.110"  # Change if needed
+ESP32_IP = "192.168.137.82"  # Change if needed
 COMMANDS = {
     "forward": "/forward",
     "backward": "/backward",
@@ -102,7 +102,7 @@ while True:
 
     button_c_boost = joystick.get_button(1)
 
-    if speed_boost_button:
+    if button_c_boost:
         if last_motorC_command != "motor_c_boost":
             send_command("motor_c_boost")
             last_motorC_command = "motor_c_boost"
